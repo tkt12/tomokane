@@ -1,0 +1,62 @@
+<?php
+declare(strict_types=1);
+
+require_once dirname(__FILE__) . '/functions.php';
+
+// エラーレポーティングのレベルを設定する
+error_reporting(E_ALL & ~E_WARNING);
+
+// エラーメッセージの初期化
+$error_message = '';
+
+// フォームが送られてきたら実行する
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // フォームのデータを取得する
+    $name = escape($_POST['name']);
+    $color = $_POST['color'];
+
+    // sql分のためにテーブルなどを指定
+    $table = "names";
+    $column1 = "name";
+    $column2 = "color";
+
+    // SQLクエリを実行してデータを更新する
+    $pdo = connect();
+    try{
+        insertN($pdo, $table, $column1, $column2, $name, $color);
+        
+        // 元のページにリダイレクトする
+        header("Location: name_list.php");
+        exit(); // リダイレクト後にスクリプトの実行を終了する
+    } catch (Exception $e) {
+        // エラーメッセージを設定する
+        $error_message = '同じ名前のデータが存在するため、登録できません。';
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>友は金なり</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h2 class="title">名前追加</h2>
+        <p class="backBtn"><a href="name_list.php">キャンセル</a></p>
+    </header>
+    <main>
+        <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method='POST'>
+            <div class="box marginTop150"><input class="paddingRight" type='text' name='name' placeholder='名前を入力' required></div>
+            <div class='box colorBox'><p>ラベルの色</p><input type='color' name='color' required></div>
+            <input class="submit" type='submit' value='保存'>
+        </form>
+        <?php if (!empty($error_message)): ?>
+            <p class="error"><?php echo htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8'); ?></p>
+        <?php endif; ?>
+    </main>
+</body>
+</html>
